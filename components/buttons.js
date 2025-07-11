@@ -43,33 +43,20 @@ async function createPrivateThread(interaction) {
         await thread.members.add(interaction.user.id);
         await thread.members.add(interaction.client.user.id);
 
-        await thread.send(`Welcome ${interaction.user}, this is your private chat.`);
-        const threadMessageCollector = thread.createMessageCollector({
-            filter: m => m.author.id === interaction.user.id,
-            time:  60 * 1000, // 15 minutes
-        });
+        const embed = new EmbedBuilder()
+        .setTitle('Start Chat')
+        .setDescription('Click the button below to start your journey!')
+        .setColor(0x00AE86);
 
-        
-        threadMessageCollector.on('collect', async (message) => {
-            // TODO: Handle Messages with ChatGPT
-            console.log(`Message from ${message.author.username}: ${message.content}`);
-        });
+        const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+            .setCustomId('awake_chat')
+            .setLabel('Start')
+            .setStyle(ButtonStyle.Primary)
+        );
 
-        threadMessageCollector.on('end', () => {
-                    const embed = new EmbedBuilder()
-                        .setTitle('I went to sleep for a while')
-                        .setDescription('To save resources, I\'m taking a nap. You can wake me up by clicking the button below.')
-                        .setColor(0x00AE86);
-            
-                    const row = new ActionRowBuilder().addComponents(
-                        new ButtonBuilder()
-                            .setCustomId('awake_chat')
-                            .setLabel('Wake me up!')
-                            .setStyle(ButtonStyle.Primary)
-                    );
+        await thread.send({ embeds: [embed], components: [row] });
 
-            thread.send({ embeds: [embed], components: [row] });
-        });
 
 
         await interaction.editReply({ content: `Private chat created: ${thread.name}`, flags: MessageFlags.Ephemeral });
@@ -126,11 +113,11 @@ async function awakeAIBot(interaction) {
             thread.send({ embeds: [embed], components: [row] });
         })
 
-        await interaction.editReply({ content: 'Awake AI Bot is now active!', flags: MessageFlags.Ephemeral });
+        await interaction.editReply({ content: 'Guru is now active!', flags: MessageFlags.Ephemeral });
 
     } catch (error) {
         console.error('Failed to awake AI Bot:', error);
-        await interaction.editReply({ content: 'Failed to awake the AI Bot.', flags: MessageFlags.Ephemeral });
+        await interaction.editReply({ content: 'Failed to awake Guru', flags: MessageFlags.Ephemeral });
     }
 }
 
