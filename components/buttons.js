@@ -6,6 +6,9 @@ const { Events, MessageFlags, ChannelType, ThreadAutoArchiveDuration, EmbedBuild
  * @returns {Promise<void>}
  */
 
+const {evaluateLimit} = require('../utils/evaluateText');
+const {processWithGPT} = require('../utils/processwithGPT');
+
 async function createPrivateThread(interaction) {
     const parentChannel = interaction.channel;
 
@@ -102,9 +105,49 @@ async function awakeAIBot(interaction) {
         trackAwake[interaction.channel.id] = true;
 
         threadMessageCollector.on('collect', async (message) => {
-            // echo the message back to the user
+            const { isEligible, messageCountToday } = await evaluateLimit(interaction.user.id);
+            if (!isEligible) {
+                await message.reply({
+                    content: `You have reached your daily limit of ${messageCountToday} messages. Please try again tomorrow.`,
+                    flags: MessageFlags.Ephemeral,
+                });
+                return;
+            }
+
+            
+
             console.log(`Message from ${message.author.username}: ${message.content}`);
-            await thread.send(`You said: ${message.content}`);
+            
+            // aggregate last 6 messages between bot and user
+            const messages = await thread.messages.fetch({ limit: 6, cache: false });
+            let aggregatedMessages = [];
+
+            const sortedMessages = Array.from(messages.values())
+        .filter(msg => msg.author.id === interaction.client.user.id || msg.author.id === interaction.user.id)
+        .sort((a, b) => a.createdTimestamp - b.createdTimestamp);
+
+        sortedMessages.forEach(msg => {
+            aggregatedMessages.push({
+                role: msg.author.id === interaction.client.user.id ? 'assistant' : 'user',
+                content: msg.content,
+            });
+        });
+
+        if (!sortedMessages.some(msg => msg.id === message.id)) {
+            aggregatedMessages.push({
+                role: 'user',
+                content: message.content
+            });
+        }
+
+            // Process the aggregated messages with GPT
+            const reply = await processWithGPT(aggregatedMessages)
+            await message.reply({
+                content: reply,
+            });
+
+            // reset collector timeout
+            threadMessageCollector.resetTimer();
 
         });
 

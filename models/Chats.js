@@ -10,10 +10,15 @@ const ChatSchema = new mongoose.Schema({
         type: Number,
         default: 0,
     
-    }
+    },
+    lastResetDate: {
+        type: Date,
+        default: Date.now,
+    },
     
-  });
-  
-  const Chat = mongoose.models.Task || mongoose.model("Chat", ChatSchema);
+  }, {timestamps: true});
+
+  const Chat = mongoose.models.Chat || mongoose.model("Chat", ChatSchema);
+
   
 module.exports = {Chat};
