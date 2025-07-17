@@ -71,12 +71,21 @@ async function createPrivateThread(interaction) {
  * @param {import('discord.js').ButtonInteraction} interaction - The button interaction object
  * @returns {Promise<void>}
  */
+let trackAwake = {}
 
 async function awakeAIBot(interaction) {
     try {
+ 
+        
+
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         const thread = interaction.channel;
+
+        if( trackAwake[interaction.channel.id]  && trackAwake[interaction.channel.id] === true ) {
+            await interaction.editReply({ content: 'Guru is already awake!', flags: MessageFlags.Ephemeral });
+            return;
+        }
 
         const member = await thread.members.fetch(interaction.user.id).catch(() => null);
         if (!thread && thread.type !== ChannelType.PrivateThread && !member) {
@@ -89,6 +98,8 @@ async function awakeAIBot(interaction) {
             filter: m => m.author.id === interaction.user.id,
             time: 60 * 1000, // 1 minute
         });
+
+        trackAwake[interaction.channel.id] = true;
 
         threadMessageCollector.on('collect', async (message) => {
             // echo the message back to the user
@@ -109,6 +120,8 @@ async function awakeAIBot(interaction) {
                     .setLabel('Wake me up!')
                     .setStyle(ButtonStyle.Primary)
             );
+
+            trackAwake[interaction.channel.id] = false; // Reset the awake status
 
             thread.send({ embeds: [embed], components: [row] });
         })
