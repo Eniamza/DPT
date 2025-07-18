@@ -34,7 +34,7 @@ async function evaluateLimit(userID) {
         }
     
         // Check if the user is eligible to send a message
-        const isEligible = chat.messageCountToday < 5; // Assuming the limit is 5 messages per day
+        const isEligible = chat.messageCountToday < 100; // Assuming the limit is 5 messages per day
         if (isEligible) {
             // Increment the message count
             chat.messageCountToday += 1;
