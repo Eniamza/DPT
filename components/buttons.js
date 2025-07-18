@@ -99,7 +99,7 @@ async function awakeAIBot(interaction) {
 
         const threadMessageCollector = interaction.channel.createMessageCollector({
             filter: m => m.author.id === interaction.user.id,
-            time: 60 * 1000, // 1 minute
+            time: 15 * 60 * 1000, // 15 minute
         });
 
         trackAwake[interaction.channel.id] = true;
